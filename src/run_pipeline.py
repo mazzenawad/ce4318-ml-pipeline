@@ -3,6 +3,7 @@ from data_prep import load_and_preprocess_data
 from train import train_model, save_model
 from eval import evaluate_model
 from visualize import plot_confusion_matrix, plot_feature_importance
+from robustness_check import evaluate_bootstrap_robustness, evaluate_noise_robustness
 
 def main():
     # Define Paths
@@ -19,15 +20,17 @@ def main():
     save_model(model, preprocessor, MODEL_OUT_PATH)
 
     # 3. Evaluation
-    print("Evaluating model...")
     evaluate_model(model, X_test, y_test, RESULTS_DIR)
 
     # 4. Visualization
-    print("Generating visualizations...")
     predictions = model.predict(X_test)
     plot_confusion_matrix(y_test, predictions, os.path.join(FIG_DIR, 'confusion_matrix.png'))
     plot_feature_importance(model, preprocessor, os.path.join(FIG_DIR, 'feature_importance.png'))
-    
+
+    # 5. Robustness Checks
+    numerical_cols = ['Age', 'Diameter', 'Slope', 'Depth', 'Length', 'Soil PH']
+    evaluate_bootstrap_robustness(model, X_test, y_test)
+    evaluate_noise_robustness(model, X_test, y_test)    
 
 if __name__ == '__main__':
     main()

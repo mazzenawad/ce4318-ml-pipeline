@@ -69,7 +69,6 @@ def evaluate_noise_robustness(model, X_test, y_test, numerical_features, noise_l
     return results_df
 
 def run_robustness_suite(data_path, model_path):
-    print("Loading data and model...")
     df = pd.read_csv(data_path)
    
     X = df.drop('Condition Rating', axis=1)
@@ -81,7 +80,6 @@ def run_robustness_suite(data_path, model_path):
     _, X_test, _, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
   
     model = joblib.load(model_path)
-    print("Model loaded successfully.\n")
   
     print("-" * 50)
     evaluate_bootstrap_robustness(model, X_test, y_test)
