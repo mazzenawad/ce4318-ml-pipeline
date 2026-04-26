@@ -17,3 +17,33 @@ The project uses synthetic infrastructure data simulating real-world municipal e
 [Raw Data] -> [Preprocessing] -> [Class Balancing] -> [Model Training] -> [Evaluation]
                  (Scaling/           (SMOTE)           (XGBoost)        (Metrics/Visuals)
                   Encoding)
+```
+
+## Repository Structure
+pipe-condition-predictor/
+│
+├── data/
+│   ├── raw/
+│   │   └── pipe_condition_class_synthetic.csv       # Original dataset 
+│   ├── processed/                                   # Processed splits/SMOTE outputs
+│
+├── src/                                             # Python scripts
+│   ├── __init__.py
+│   ├── data_prep.py                                 # Loading, scaling, SMOTE
+│   ├── train.py                                     # XGBoost training & cross-validation
+│   ├── evaluate.py                                  # Metric generation (accuracy, F1, etc.)
+│   ├── visualize.py                                 # Feature importance, confusion matrix
+│   └── run_pipeline.py                              # Master script to execute the pipeline
+│
+├── output/
+│   ├── models/
+│   │   └── best_xgb_model.joblib                    # Saved trained model
+│   ├── figures/
+│   │   ├── confusion_matrix.png
+│   │   └── feature_importance.png
+│   └── results/
+│       └── classification_report.txt
+│
+├── README.md
+├── requirements.txt
+└── .gitignore
