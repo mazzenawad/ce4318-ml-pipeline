@@ -29,13 +29,10 @@ def main():
     plot_feature_importance(model, preprocessor, os.path.join(FIG_DIR, 'feature_importance.png'))
 
     # 5. Robustness Checks
-    # Make sure to add 'import pandas as pd' at the very top of run_pipeline.py!
-
-    # 5. Robustness Checks
     feature_names = preprocessor.get_feature_names_out()
     X_test_df = pd.DataFrame(X_test, columns=feature_names)
     X_test_df = pd.DataFrame(X_test, columns=feature_names)
-    features_to_perturb = ['num__Age', 'num__Diameter', 'num__Soil PH']
+    features_to_perturb = ['Age', 'Diameter', 'Soil PH', 'Age_x_Soil_PH']
     evaluate_bootstrap_robustness(model, X_test_df, y_test)
     evaluate_noise_robustness(model, X_test_df, y_test, numerical_features=features_to_perturb) 
 

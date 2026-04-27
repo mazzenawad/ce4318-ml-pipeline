@@ -1,4 +1,5 @@
 #Robustness Check using 1. Bootstrap Evaluation and 2. Noise Perturbation Check
+import os
 import pandas as pd
 import numpy as np
 import joblib
@@ -6,6 +7,12 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.metrics import f1_score
 from sklearn.utils import resample
+
+def save_figure_to_output(fig, filename):
+    output_dir = os.path.join('output', 'figures')
+    os.makedirs(output_dir, exist_ok=True)
+    file_path = os.path.join(output_dir, filename)
+    fig.savefig(file_path, bbox_inches='tight') 
 
 def evaluate_bootstrap_robustness(model, X_test, y_test, n_iterations=100, random_state=42):
     print(f"Running Bootstrap Evaluation ({n_iterations} iterations)")
@@ -24,18 +31,30 @@ def evaluate_bootstrap_robustness(model, X_test, y_test, n_iterations=100, rando
     mean_score = np.mean(scores)
     
     print(f"Bootstrap Macro F1-Score: {mean_score:.4f} (95% CI: [{lower_bound:.4f}, {upper_bound:.4f}])")
-    plt.figure(figsize=(8, 5))
-    sns.histplot(scores, kde=True, bins=20, color='royalblue')
+    
+    plt.figure(1, figsize=(8, 5))
+    
+    if np.var(scores) == 0:
+        sns.histplot(scores, kde=False, bins=20, color='royalblue')
+    else:
+        sns.histplot(scores, kde=True, bins=20, color='royalblue')
+        
     plt.axvline(mean_score, color='red', linestyle='dashed', linewidth=2, label=f'Mean: {mean_score:.4f}')
     plt.title('Bootstrap Robustness: F1-Score Distribution')
     plt.xlabel('Macro F1-Score')
     plt.ylabel('Frequency')
     plt.legend()
+    
+    fig = plt.gcf()
+    save_figure_to_output(fig, 'bootstrap_distribution.png')
+    
     plt.show()
+    plt.close() 
     
     return {'mean': mean_score, 'lower_ci': lower_bound, 'upper_ci': upper_bound, 'all_scores': scores}
 
 def evaluate_noise_robustness(model, X_test, y_test, numerical_features, noise_levels=[0.0, 0.05, 0.10, 0.20, 0.30]):
+    print(f"Running Noise Perturbation Check on features: {numerical_features}")
     results = []
     
     for level in noise_levels:
@@ -44,9 +63,7 @@ def evaluate_noise_robustness(model, X_test, y_test, numerical_features, noise_l
         if level > 0:
             for feature in numerical_features:
                 std_dev = X_noisy[feature].std()
-                
                 noise = np.random.normal(loc=0.0, scale=std_dev * level, size=len(X_noisy))
-
                 X_noisy[feature] = X_noisy[feature] + noise
                 
         y_pred = model.predict(X_noisy)
@@ -56,14 +73,22 @@ def evaluate_noise_robustness(model, X_test, y_test, numerical_features, noise_l
         
     results_df = pd.DataFrame(results)
    
-    plt.figure(figsize=(8, 5))
+    plt.figure(2, figsize=(8, 5))
     sns.lineplot(data=results_df, x='Noise Level (%)', y='Macro F1-Score', marker='o', linewidth=2, color='darkorange')
     plt.title('Noise Robustness: Performance Degradation')
     plt.xlabel('Noise Injected (% of Feature Std Dev)')
     plt.ylabel('Macro F1-Score')
-    plt.ylim(0, results_df['Macro F1-Score'].max() + 0.1)
+    
+    max_score = results_df['Macro F1-Score'].max()
+    plt.ylim(0, max_score + (0.1 if max_score < 0.9 else 0.01)) 
+    
     plt.grid(True)
+    
+    fig = plt.gcf()
+    save_figure_to_output(fig, 'noise_degradation.png')
+    
     plt.show()
+    plt.close() 
     
     return results_df
 
