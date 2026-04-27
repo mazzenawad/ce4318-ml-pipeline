@@ -12,6 +12,8 @@ import os
 def load_and_preprocess_data(raw_data_path, random_seed=42):
     df = pd.read_csv(raw_data_path)
     df['Age_x_Soil_PH'] = df['Age'] * df['Soil PH']
+    df['Age_x_Material'] = df['Age'] * df['Material'].astype('category').cat.codes
+    df['len_x_slope'] = df['Length'] * df['Slope']
 
     x = df.drop('Condition Rating', axis = 1)
     y = df['Condition Rating']
@@ -26,7 +28,9 @@ def load_and_preprocess_data(raw_data_path, random_seed=42):
                         'Length']
     standard_num_cols = ['Age', 
                         'Soil PH',
-                        'Age_x_Soil_PH'
+                        'Age_x_Soil_PH',
+                        'Age_x_Material',
+                        'len_x_slope'
                         ]
     categorical_cols = ['Material',
                         'Road Type', 

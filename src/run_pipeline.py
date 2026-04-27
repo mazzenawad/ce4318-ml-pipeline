@@ -1,8 +1,9 @@
 import os
 import pandas as pd
+import numpy as np
 from data_prep import load_and_preprocess_data
 from train import train_model, save_model
-from eval import evaluate_model
+from eval import evaluate_model, evaluate_ordinal_performance
 from visualize import plot_confusion_matrix, plot_feature_importance
 from robustness_check import evaluate_bootstrap_robustness, evaluate_noise_robustness
 
@@ -21,18 +22,24 @@ def main():
     save_model(model, preprocessor, MODEL_OUT_PATH)
 
     # 3. Evaluation
+    raw_predictions = model.predict(X_test)
+    rounded_predictions = np.round(raw_predictions)
+    min_rating = np.min(y_train)
+    max_rating = np.max(y_train)
+    y_pred = np.clip(rounded_predictions, a_min=min_rating, a_max=max_rating)
+    evaluate_ordinal_performance(y_test, y_pred, output_dir='output/metrics')
     evaluate_model(model, X_test, y_test, RESULTS_DIR)
 
     # 4. Visualization
     predictions = model.predict(X_test)
-    plot_confusion_matrix(y_test, predictions, os.path.join(FIG_DIR, 'confusion_matrix.png'))
+    plot_confusion_matrix(y_test, y_pred, os.path.join(FIG_DIR, 'confusion_matrix.png'))
     plot_feature_importance(model, preprocessor, os.path.join(FIG_DIR, 'feature_importance.png'))
 
     # 5. Robustness Checks
     feature_names = preprocessor.get_feature_names_out()
     X_test_df = pd.DataFrame(X_test, columns=feature_names)
     X_test_df = pd.DataFrame(X_test, columns=feature_names)
-    features_to_perturb = ['Age', 'Diameter', 'Soil PH', 'Age_x_Soil_PH']
+    features_to_perturb = ['Age', 'Diameter', 'Soil PH', 'Age_x_Soil_PH', 'Age_x_Material', 'len_x_slope']
     evaluate_bootstrap_robustness(model, X_test_df, y_test)
     evaluate_noise_robustness(model, X_test_df, y_test, numerical_features=features_to_perturb) 
 
