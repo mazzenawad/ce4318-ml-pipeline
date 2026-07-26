@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 from data_prep import load_and_preprocess_data
 from train import train_model, save_model
-from eval import evaluate_model, evaluate_ordinal_performance, ROC_AUC_multiclass
+from eval import evaluate_model, evaluate_ordinal_performance, ROC_AUC_multiclass, plot_multiclass_roc_curve
 from visualize import plot_confusion_matrix, plot_feature_importance
 from robustness_check import evaluate_bootstrap_robustness, evaluate_noise_robustness
 
@@ -30,6 +30,7 @@ def main():
     evaluate_ordinal_performance(y_test, y_pred, output_dir='output/metrics')
     evaluate_model(model, X_test, y_test, RESULTS_DIR)
     ROC_AUC_multiclass(model, X_test, y_test, RESULTS_DIR)
+    plot_multiclass_roc_curve(model, X_test, y_test, RESULTS_DIR)
 
     # 4. Visualization
     predictions = model.predict(X_test)
